@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.acua.dal.TransmitterRepository;
+import com.acua.model.Transmitter;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TransmitterControllerTest {
@@ -25,6 +26,12 @@ public class TransmitterControllerTest {
 	public void findByIdTest() {
 		controller.getTransmitter(ID);
 		verify(repository).findById(ID);
+	}
+	
+	@Test
+	public void getAllTransmitters() {
+		controller.getAllTransmitters();
+		verify(repository).findBy_class(Transmitter.class.getSimpleName().toLowerCase());
 	}
 	
 	

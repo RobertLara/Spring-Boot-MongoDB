@@ -5,6 +5,9 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,17 +34,31 @@ public class TransmitterController {
 	}
 
 	@ApiOperation(value = "Create a new transmitter")
-	@RequestMapping(value = "/create", method = RequestMethod.POST)
-	public Transmitter addNewTransmitters(@RequestBody Transmitter transmitter) {
+	@ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Create successfully"),
+            @ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+            @ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+    }
+	)
+	@RequestMapping(value = "/create", method = RequestMethod.PUT)
+	public ResponseEntity<Transmitter> addNewTransmitters(@RequestBody Transmitter transmitter) {
 		logger.info("Saving transmitter.");
-		return transmitterRepository.save(transmitter);
+		return ResponseEntity.status(HttpStatus.OK).body(transmitterRepository.save(transmitter));
 	}
 	
 	@ApiOperation(value = "Get all transmitters")
+	@ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully retrieved list"),
+            @ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+            @ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+            @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
+    }
+	)
 	@RequestMapping(value = "", method = RequestMethod.GET)
-	public List<Transmitter> getAllTransmitters() {
+	public ResponseEntity<List<Transmitter>> getAllTransmitters() {
 		logger.info("Getting all transmitters.");
-		return transmitterRepository.findBy_class(Transmitter.class.getSimpleName().toLowerCase());
+		List<Transmitter> result = transmitterRepository.findBy_class(Transmitter.class.getSimpleName().toLowerCase());
+		return ResponseEntity.status(HttpStatus.OK).body(result);
 	}
 	
 	@ApiOperation(value = "Get transmitter by id")
@@ -53,13 +70,13 @@ public class TransmitterController {
     }
 	)
 	@RequestMapping(value = "/{transmitterId}", method = RequestMethod.GET)
-	public Transmitter getTransmitter(@PathVariable String transmitterId) {
+	public ResponseEntity<Transmitter> getTransmitter(@PathVariable String transmitterId) {
 		logger.info("Getting transmitter with ID: {}.", transmitterId);
 		Optional<Transmitter> optionalTransmitter = transmitterRepository.findById(transmitterId);
 		if (optionalTransmitter.isPresent()) {
-			return optionalTransmitter.get();
+			return ResponseEntity.status(HttpStatus.OK).body(optionalTransmitter.get());
 		} else {
-			return null;
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
 	}
 	
@@ -72,11 +89,13 @@ public class TransmitterController {
     }
 	)
 	@RequestMapping(value = "/delete/{transmitterId}", method = RequestMethod.DELETE)
-	public void deleteTransmitter(@PathVariable String transmitterId) {
+	public BodyBuilder deleteTransmitter(@PathVariable String transmitterId) {
 		logger.info("Remove transmitter with ID: {}.", transmitterId);
 		Optional<Transmitter> optionalTransmitter = transmitterRepository.findById(transmitterId);
 		if (optionalTransmitter.isPresent()) {
 			transmitterRepository.delete(optionalTransmitter.get());
+			return ResponseEntity.status(HttpStatus.NO_CONTENT);
 		}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND);
 	}
 }
